@@ -151,9 +151,9 @@ def main_worker(gpu, ngpus_per_node, args):
     ])
 
     if args.dataset == 'mnist':
-        train_dataset = MNIST(root='./data', imb_type=args.imb_type, imb_factor=args.imb_factor, rand_number=args.rand_number, train=True, download=True, transform=transform_train)
-        val_dataset = datasets.MNIST(root='./data', train=False, download=True, transform=transform_val)
-        print("HERE: ",train_dataset)
+        train_dataset = MNIST(root='./data/MNIST/raw', imb_type=args.imb_type, imb_factor=args.imb_factor, rand_number=args.rand_number, train=True, download=True, transform=transform_train)
+        val_dataset = datasets.MNIST(root='./data/MNIST/raw', train=False, download=True, transform=transform_val)
+        print(train_dataset,"\n",val_dataset)
     else:
         warnings.warn('Dataset is not listed')
         return
@@ -249,7 +249,7 @@ def train(train_loader, model, criterion, optimizer, epoch, args, log, tf_writer
     
     # switch to train mode
     model.train()
-    #print("LEN: ",list(train_loader))
+    
     end = time.time()
     for i, (input, target) in enumerate(train_loader):
         # measure data loading time
