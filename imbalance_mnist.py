@@ -2,6 +2,7 @@ import torch
 import torchvision
 import torchvision.transforms as transforms
 import numpy as np
+import gzip
 
 class MNIST(torchvision.datasets.MNIST):
     cls_num = 10
@@ -11,6 +12,29 @@ class MNIST(torchvision.datasets.MNIST):
                  download=False):
         super(MNIST, self).__init__(root, train, transform, target_transform, download)
         np.random.seed(rand_number)
+        training_images_unzipped = gzip.open('train-images-idx3-ubyte.gz', 'r')
+        training_labels_unzipped = gzip.open('train-labels-idx1-ubyte.gz', 'r')
+        test_images_unzipped = gzip.open('t10k-images-idx3-ubyte.gz', 'r')
+        test_labels_unzipped = gzip.open('t10k-labels-idx1-ubyte.gz', 'r')
+
+        image_size = 28
+        training_labels_unzipped.read(8)
+        label_buf = training_labels_unzipped.read(60000)
+        labelArray = np.frombuffer(label_buf, dtype=np.uint8).astype(np.int32)
+
+        training_images_unzipped.read(16)
+        buf = training_images_unzipped.read(image_size * image_size * 60000)
+        imbalanced_data = np.frombuffer(buf, dtype=np.uint8).astype(np.float32)
+
+
+        test_labels_unzipped.read(8)
+        test_label_buf = test_labels_unzipped.read(10000)
+        test_labelArray = np.frombuffer(test_label_buf, dtype=np.uint8).astype(np.int32)
+
+        test_images_unzipped.read(16)
+        test_images_buf = test_images_unzipped.read(image_size * image_size * 10000)
+        test_images = np.frombuffer(test_images_buf, dtype=np.uint8).astype(np.float32)
+
         img_num_list = self.get_img_num_per_cls(self.cls_num, imb_type, imb_factor)
         self.gen_imbalanced_data(img_num_list)
 
@@ -33,6 +57,7 @@ class MNIST(torchvision.datasets.MNIST):
     def gen_imbalanced_data(self, img_num_per_cls):
         new_data = []
         new_targets = []
+        
         targets_np = np.array(self.targets, dtype=np.int64)
         classes = np.unique(targets_np)
         # np.random.shuffle(classes)
