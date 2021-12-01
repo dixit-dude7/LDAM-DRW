@@ -142,26 +142,31 @@ def main_worker(gpu, ngpus_per_node, args):
         transforms.RandomCrop(32, padding=4),
         transforms.RandomHorizontalFlip(),
         transforms.ToTensor(),
-        transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
+        #transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
+        transforms.Normalize((0), (1)),
     ])
 
     transform_val = transforms.Compose([
         transforms.ToTensor(),
-        transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
+        #transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
+        transforms.Normalize((0), (1))
     ])
 
     if args.dataset == 'mnist':
-        train_dataset = MNIST(root='./data/MNIST/raw', imb_type=args.imb_type, imb_factor=args.imb_factor, rand_number=args.rand_number, train=True, download=True, transform=transform_train)
+        #train_dataset = MNIST(root='./data/MNIST/raw', imb_type=args.imb_type, imb_factor=args.imb_factor, rand_number=args.rand_number, train=True, download=True, transform=transform_train)
+        train_dataset = datasets.MNIST(root='./data/MNIST/raw',download=True,train=True,transform=transform_train)
         val_dataset = datasets.MNIST(root='./data/MNIST/raw', train=False, download=True, transform=transform_val)
         print(train_dataset,"\n",val_dataset)
     else:
         warnings.warn('Dataset is not listed')
         return
-    cls_num_list = train_dataset.get_cls_num_list()
+    '''cls_num_list = train_dataset.get_cls_num_list()
     print('cls num list:')
     print(cls_num_list)
-    args.cls_num_list = cls_num_list
+    args.cls_num_list = cls_num_list'''
     
+    cls_num_list = [list(train_dataset.targets).count(x) for x in range(10)]
+
     train_sampler = None
         
     train_loader = torch.utils.data.DataLoader(
@@ -172,6 +177,7 @@ def main_worker(gpu, ngpus_per_node, args):
         val_dataset, batch_size=100, shuffle=False,
         num_workers=args.workers, pin_memory=True)
 
+    
     # init log for training
     log_training = open(os.path.join(args.root_log, args.store_name, 'log_train.csv'), 'w')
     log_testing = open(os.path.join(args.root_log, args.store_name, 'log_test.csv'), 'w')
