@@ -18,7 +18,8 @@ import models
 from tensorboardX import SummaryWriter
 from sklearn.metrics import confusion_matrix
 from utils import *
-from imbalance_mnist import MNIST,CIFAR100
+from imbalance_mnist import MNISTtorch
+import mnist_datasets
 from losses import LDAMLoss, FocalLoss
 
 model_names = sorted(name for name in models.__dict__
@@ -151,12 +152,15 @@ def main_worker(gpu, ngpus_per_node, args):
         #transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
         transforms.Normalize((0), (1))
     ])
-
+    
     if args.dataset == 'mnist':
         #train_dataset = MNIST(root='./data/MNIST/raw', imb_type=args.imb_type, imb_factor=args.imb_factor, rand_number=args.rand_number, train=True, download=True, transform=transform_train)
         train_dataset = datasets.MNIST(root='./data/MNIST/raw',download=True,train=True,transform=transform_train)
         val_dataset = datasets.MNIST(root='./data/MNIST/raw', train=False, download=True, transform=transform_val)
-        print(train_dataset,"\n",val_dataset)
+        
+    elif args.dataset == 'imb':
+        train_dataset = mnist_datasets.get_data_tensor("imbalanced","asym")
+        val_dataset = mnist_datasets.val_data_tensor()
     else:
         warnings.warn('Dataset is not listed')
         return
