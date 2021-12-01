@@ -4,13 +4,13 @@ import torchvision.transforms as transforms
 import numpy as np
 import gzip
 
-class MNIST(torchvision.datasets.MNIST):
+class MNISTtorch(torchvision.datasets.MNIST):
     cls_num = 10
 
     def __init__(self, root, imb_type='exp', imb_factor=0.01, rand_number=0, train=True,
                  transform=None, target_transform=None,
                  download=False):
-        super(MNIST, self).__init__(root, train, transform, target_transform, download)
+        super(MNISTtorch, self).__init__(root, train, transform, target_transform, download)
         np.random.seed(rand_number)
         
 
@@ -58,7 +58,7 @@ class MNIST(torchvision.datasets.MNIST):
             cls_num_list.append(self.num_per_cls_dict[i])
         return cls_num_list
 
-class CIFAR100(MNIST):
+class CIFAR100(MNISTtorch):
     """`CIFAR100 <https://www.cs.toronto.edu/~kriz/cifar.html>`_ Dataset.
     This is a subclass of the `CIFAR10` Dataset.
     """
