@@ -19,7 +19,7 @@ from tensorboardX import SummaryWriter
 from sklearn.metrics import confusion_matrix
 from utils import *
 from imbalance_mnist import MNISTtorch
-import mnist_datasets
+from mnist_datasets import *
 from losses import LDAMLoss, FocalLoss
 
 model_names = sorted(name for name in models.__dict__
@@ -140,8 +140,8 @@ def main_worker(gpu, ngpus_per_node, args):
     # Data loading code
 
     transform_train = transforms.Compose([
-        transforms.RandomCrop(32, padding=4),
-        transforms.RandomHorizontalFlip(),
+        #transforms.RandomCrop(32, padding=4),
+        #transforms.RandomHorizontalFlip(),
         transforms.ToTensor(),
         #transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
         transforms.Normalize((0), (1)),
@@ -155,12 +155,12 @@ def main_worker(gpu, ngpus_per_node, args):
     
     if args.dataset == 'mnist':
         #train_dataset = MNIST(root='./data/MNIST/raw', imb_type=args.imb_type, imb_factor=args.imb_factor, rand_number=args.rand_number, train=True, download=True, transform=transform_train)
-        train_dataset = datasets.MNIST(root='./data/MNIST/raw',download=True,train=True,transform=transform_train)
-        val_dataset = datasets.MNIST(root='./data/MNIST/raw', train=False, download=True, transform=transform_val)
-        
+        train_dataset = datasets.MNIST(root='./data',download=True,train=True,transform=transform_train)
+        val_dataset = datasets.MNIST(root='./data', train=False, download=True, transform=transform_val)
+        cls_num_list = [list(train_dataset.targets).count(x) for x in range(10)]    
     elif args.dataset == 'imb':
-        train_dataset = mnist_datasets.get_data_tensor("imbalanced","asym")
-        val_dataset = mnist_datasets.val_data_tensor()
+        train_dataset,cls_num_list = train_data_tensor("imbalanced","asym")
+        val_dataset = val_data_tensor()
     else:
         warnings.warn('Dataset is not listed')
         return
@@ -169,7 +169,7 @@ def main_worker(gpu, ngpus_per_node, args):
     print(cls_num_list)
     args.cls_num_list = cls_num_list'''
     
-    cls_num_list = [list(train_dataset.targets).count(x) for x in range(10)]
+    
 
     train_sampler = None
         
