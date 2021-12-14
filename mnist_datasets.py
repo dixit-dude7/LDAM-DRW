@@ -254,6 +254,9 @@ def train_data_tensor(raw = "imbalanced",label = "no"):
 
 def val_data_tensor():
   print(test_images)
-  return torch.from_numpy(test_images)
+  test_images_tensor = torch.from_numpy(test_images)
+  test_images_label_tensor=torch.from_numpy(np.argmax(test_labelArray,axis=1))
+  val_dataset = torch.utils.data.TensorDataset(test_images_tensor,test_images_label_tensor)
+  return val_dataset
 
 #print(torch.max(imbalanced_data_tensor))
