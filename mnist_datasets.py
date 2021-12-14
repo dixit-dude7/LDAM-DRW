@@ -218,6 +218,8 @@ balanced_data_asym_tensor = torch.from_numpy(np.argmax(label_array_balanced_asym
 imbalanced_data_sym_tensor = torch.from_numpy(np.argmax(label_array_imbalanced_sym,axis=1))
 balanced_data_sym_tensor = torch.from_numpy(np.argmax(label_array_balanced_sym,axis=1))
 
+
+
 def getLabel(npArray):
         return list(Counter(np.argmax(npArray,axis=1)).values())
 
@@ -251,6 +253,7 @@ def train_data_tensor(raw = "imbalanced",label = "no"):
   return dataset,cls_num_list
 
 def val_data_tensor():
+  print(test_images)
   return torch.from_numpy(test_images)
 
 #print(torch.max(imbalanced_data_tensor))
