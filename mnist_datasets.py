@@ -162,7 +162,7 @@ for index, label in enumerate(labelArray):
 minimumSampleCount = countMap[min(countMap, key=countMap.get)]
 #Balanced Without Noise
 training_labels_balanced_without_noise = np.copy(labelArray)
-balanced_data, training_labels_balanced_without_noise= balanceDataset(imbalanced_data, training_labels_balanced_without_noise, minimumSampleCount)
+balanced_data, training_labels_balanced_without_noise = balanceDataset(imbalanced_data, training_labels_balanced_without_noise, minimumSampleCount)
 
 #Imbalanced Asymmetric
 label_array_imbalanced_asym = np.copy(labelArray)
@@ -221,7 +221,7 @@ balanced_data_sym_tensor = torch.from_numpy(np.argmax(label_array_balanced_sym,a
 
 
 def getLabel(npArray):
-        return list(Counter(np.argmax(npArray,axis=1)).values())
+  return list(Counter(np.argmax(npArray,axis=1)).values())
 
 def train_data_tensor(raw = "imbalanced",label = "no"):
   if raw == 'imbalanced':
@@ -231,7 +231,7 @@ def train_data_tensor(raw = "imbalanced",label = "no"):
     elif label == "asym":
       dataset = torch.utils.data.TensorDataset(imbalanced_data_tensor,imbalanced_data_asym_tensor)
       cls_num_list = getLabel(label_array_imbalanced_asym)
-    elif label =="sym":
+    elif label == "sym":
       dataset = torch.utils.data.TensorDataset(imbalanced_data_tensor,imbalanced_data_sym_tensor)
       cls_num_list = getLabel(label_array_imbalanced_sym)
     else:
@@ -253,9 +253,8 @@ def train_data_tensor(raw = "imbalanced",label = "no"):
   return dataset,cls_num_list
 
 def val_data_tensor():
-  print(test_images)
   test_images_tensor = torch.from_numpy(test_images)
-  test_images_label_tensor=torch.from_numpy(np.argmax(test_labelArray,axis=1))
+  test_images_label_tensor = torch.from_numpy(np.argmax(test_labelArray,axis=1))
   val_dataset = torch.utils.data.TensorDataset(test_images_tensor,test_images_label_tensor)
   return val_dataset
 

@@ -28,6 +28,7 @@ model_names = sorted(name for name in models.__dict__
 
 parser = argparse.ArgumentParser(description='PyTorch MNIST Training')
 parser.add_argument('--dataset', default='mnist', help='dataset setting')
+parser.add_argument('--noise', default='none', help = 'noise addition')
 parser.add_argument('-a', '--arch', metavar='ARCH', default='resnet32',
                     choices=model_names,
                     help='model architecture: ' +
@@ -158,8 +159,23 @@ def main_worker(gpu, ngpus_per_node, args):
         train_dataset = datasets.MNIST(root='./data',download=True,train=True,transform=transform_train)
         val_dataset = datasets.MNIST(root='./data', train=False, download=True, transform=transform_val)
         cls_num_list = [list(train_dataset.targets).count(x) for x in range(10)]    
-    elif args.dataset == 'imb':
+    elif args.dataset == 'imb' and args.noise == 'asym':
         train_dataset,cls_num_list = train_data_tensor("imbalanced","asym")
+        val_dataset = val_data_tensor()
+    elif args.dataset == 'imb' and args.noise == 'sym':
+        train_dataset,cls_num_list = train_data_tensor("imbalanced","sym")
+        val_dataset = val_data_tensor()
+    elif args.dataset == 'imb' and args.noise == 'none':
+        train_dataset,cls_num_list = train_data_tensor("imbalanced","no")
+        val_dataset = val_data_tensor()
+    elif args.dataset == 'bal' and args.noise == 'asym':
+        train_dataset,cls_num_list = train_data_tensor("balanced","asym")
+        val_dataset = val_data_tensor()
+    elif args.dataset == 'bal' and args.noise == 'sym':
+        train_dataset,cls_num_list = train_data_tensor("balanced","sym")
+        val_dataset = val_data_tensor()
+    elif args.dataset == 'bal' and args.noise == 'none':
+        train_dataset,cls_num_list = train_data_tensor("balanced","no")
         val_dataset = val_data_tensor()
     else:
         warnings.warn('Dataset is not listed')
