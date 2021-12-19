@@ -15,16 +15,17 @@ import torch.utils.data
 import torchvision.transforms as transforms
 import torchvision.datasets as datasets
 import models
+from ignite.contrib.metrics import ROC_AUC
 from tensorboardX import SummaryWriter
 from sklearn.metrics import confusion_matrix
 from utils import *
-from imbalance_mnist import MNISTtorch
 from mnist_datasets import *
 from losses import LDAMLoss, FocalLoss
 
 model_names = sorted(name for name in models.__dict__
     if name.islower() and not name.startswith("__")
     and callable(models.__dict__[name]))
+
 
 parser = argparse.ArgumentParser(description='PyTorch MNIST Training')
 parser.add_argument('--dataset', default='mnist', help='dataset setting')
@@ -42,7 +43,7 @@ parser.add_argument('--rand_number', default=0, type=int, help='fix random numbe
 parser.add_argument('--exp_str', default='0', type=str, help='number to indicate which experiment it is')
 parser.add_argument('-j', '--workers', default=4, type=int, metavar='N',
                     help='number of data loading workers (default: 4)')
-parser.add_argument('--epochs', default=200, type=int, metavar='N',
+parser.add_argument('--epochs', default=5, type=int, metavar='N',
                     help='number of total epochs to run')
 parser.add_argument('--start-epoch', default=0, type=int, metavar='N',
                     help='manual epoch number (useful on restarts)')
@@ -266,6 +267,13 @@ def main_worker(gpu, ngpus_per_node, args):
         }, is_best)
 
 
+def activated_output_transform(output):
+    y_pred, y = output
+    y_pred = torch.sigmoid(y_pred)
+    return y_pred, y
+
+
+
 def train(train_loader, model, criterion, optimizer, epoch, args, log, tf_writer):
     batch_time = AverageMeter('Time', ':6.3f')
     data_time = AverageMeter('Data', ':6.3f')
@@ -303,7 +311,6 @@ def train(train_loader, model, criterion, optimizer, epoch, args, log, tf_writer
         # measure elapsed time
         batch_time.update(time.time() - end)
         end = time.time()
-
         if i % args.print_freq == 0:
             output = ('Epoch: [{0}][{1}/{2}], lr: {lr:.5f}\t'
                       'Time {batch_time.val:.3f} ({batch_time.avg:.3f})\t'
@@ -327,7 +334,7 @@ def validate(val_loader, model, criterion, epoch, args, log=None, tf_writer=None
     losses = AverageMeter('Loss', ':.4e')
     top1 = AverageMeter('Acc@1', ':6.2f')
     top5 = AverageMeter('Acc@5', ':6.2f')
-    
+    y_pred = [[],[],[],[],[],[],[],[],[],[]]
     # switch to evaluate mode
     model.eval()
     all_preds = []
@@ -370,16 +377,37 @@ def validate(val_loader, model, criterion, epoch, args, log=None, tf_writer=None
         cls_cnt = cf.sum(axis=1)
         cls_hit = np.diag(cf)
         cls_acc = cls_hit / cls_cnt
-        output = ('{flag} Results: Prec@1 {top1.avg:.3f} Prec@5 {top5.avg:.3f} Loss {loss.avg:.5f}'
+
+        cls_fn = cf.sum(0)
+        cls_rec = cls_hit/cls_fn
+        outputpr = ('{flag} Results: Prec@1 {top1.avg:.3f} Prec@5 {top5.avg:.3f} Loss {loss.avg:.5f}'
                 .format(flag=flag, top1=top1, top5=top5, loss=losses))
         out_cls_acc = '%s Class Accuracy: %s'%(flag,(np.array2string(cls_acc, separator=',', formatter={'float_kind':lambda x: "%.3f" % x})))
-        print(output)
+        print(outputpr)
         print(out_cls_acc)
+        roc_auc = ROC_AUC(activated_output_transform)
+        #print('AUC: ', roc_auc)
+        print("Recall: ",cls_rec)
+        #print("Confusion Matrix: \n",cf)
         if log is not None:
-            log.write(output + '\n')
+            log.write(outputpr + '\n')
             log.write(out_cls_acc + '\n')
             log.flush()
 
+        #Array of pred confidence values for no. n = y_pred
+        #actual value (0,1) for that value = y_gt
+        #ROC function
+        
+
+        #print(y_pred)
+        #y_pred = numpy.zeros(10)
+        #y_gt[10][10]
+        #for i in range(10):
+        #    y_pred[i] = output.numpy()
+        #    y_gt = target.numpy()
+
+            
+            #Recall TP/TP+FN
         tf_writer.add_scalar('loss/test_'+ flag, losses.avg, epoch)
         tf_writer.add_scalar('acc/test_' + flag + '_top1', top1.avg, epoch)
         tf_writer.add_scalar('acc/test_' + flag + '_top5', top5.avg, epoch)

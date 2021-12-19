@@ -188,6 +188,7 @@ balanced_data = balanced_data.reshape(-1, 1, image_size, image_size)
 test_images = test_images.reshape(-1, 1, image_size, image_size)
 
 labelArray = np_utils.to_categorical(labelArray, 10)
+training_labels_balanced_without_noise = np_utils.to_categorical(training_labels_balanced_without_noise, 10)
 label_array_imbalanced_asym = np_utils.to_categorical(label_array_imbalanced_asym, 10)
 label_array_balanced_asym = np_utils.to_categorical(label_array_balanced_asym, 10)
 label_array_imbalanced_sym = np_utils.to_categorical(label_array_imbalanced_sym, 10)
@@ -211,14 +212,12 @@ def computeAndDisplayConfusionMatrix(test_data, prediction, classifier):
 imbalanced_data_tensor = torch.from_numpy(imbalanced_data)
 balanced_data_tensor = torch.from_numpy(balanced_data)
 
-imbalanced_data_labels_tensor = torch.from_numpy(labelArray)
-balanced_data_labels_tensor = torch.from_numpy(training_labels_balanced_without_noise)
+imbalanced_data_labels_tensor = torch.from_numpy(np.argmax(labelArray,axis=1))
+balanced_data_labels_tensor = torch.from_numpy(np.argmax(training_labels_balanced_without_noise,axis=1))
 imbalanced_data_asym_tensor = torch.from_numpy(np.argmax(label_array_imbalanced_asym,axis=1))
 balanced_data_asym_tensor = torch.from_numpy(np.argmax(label_array_balanced_asym,axis=1))
 imbalanced_data_sym_tensor = torch.from_numpy(np.argmax(label_array_imbalanced_sym,axis=1))
 balanced_data_sym_tensor = torch.from_numpy(np.argmax(label_array_balanced_sym,axis=1))
-
-
 
 def getLabel(npArray):
   return list(Counter(np.argmax(npArray,axis=1)).values())
@@ -227,7 +226,7 @@ def train_data_tensor(raw = "imbalanced",label = "no"):
   if raw == 'imbalanced':
     if label == "no":
       dataset = torch.utils.data.TensorDataset(imbalanced_data_tensor,imbalanced_data_labels_tensor)
-      cls_num_list = list(Counter(list(labelArray)))
+      cls_num_list = getLabel(labelArray)
     elif label == "asym":
       dataset = torch.utils.data.TensorDataset(imbalanced_data_tensor,imbalanced_data_asym_tensor)
       cls_num_list = getLabel(label_array_imbalanced_asym)
@@ -239,7 +238,7 @@ def train_data_tensor(raw = "imbalanced",label = "no"):
   elif raw == "balanced":
     if label == "no":
       dataset = torch.utils.data.TensorDataset(balanced_data_tensor,balanced_data_labels_tensor)
-      cls_num_list = list(Counter(list(training_labels_balanced_without_noise)))
+      cls_num_list = getLabel(training_labels_balanced_without_noise)
     elif label == "asym":
       dataset = torch.utils.data.TensorDataset(balanced_data_tensor,balanced_data_asym_tensor)
       cls_num_list = getLabel(label_array_balanced_asym)
